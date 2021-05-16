@@ -65,7 +65,21 @@ public class CSVUtilTest {
 
     @Test
     void reactive_filtrarJugadoresMayoresA35_Mongo(){
-        var listFilter = playerService.teamWithPlayers();
+        Flux<Player> listFlux = playerService.findAll();
+        Mono<Map<String, Collection<Player>>> listFilter = listFlux
+                .filter(player -> player.age >= 35)
+                .map(player -> {
+                    player.name = player.name.toUpperCase(Locale.ROOT);
+                    return player;
+                })
+                .buffer(100)
+                .flatMap(playerA -> listFlux
+                        .filter(playerB -> playerA.stream()
+                                .anyMatch(a ->  a.club.equals(playerB.club)))
+                )
+                .distinct()
+                .collectMultimap(Player::getClub);
+
         assert listFilter.block().size() == 322;
     }
 
