@@ -21,7 +21,7 @@ public class RunnerApplication {
     PlayerService playerService;
 
     //@Bean
-    CommandLineRunner demo() {
+    CommandLineRunner saveRegisters() {
         return args -> {
             var uri =  CsvUtilFile.class.getClassLoader().getResource("data.csv");
             try (CSVReader reader = new CSVReader(new FileReader(uri.getFile()))) {

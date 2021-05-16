@@ -9,7 +9,6 @@ public class Player {
 
     @Id
     public Integer id;
-
     public String name;
     public Integer age;
     public String icon;
