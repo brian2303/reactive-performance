@@ -1,21 +1,21 @@
 package com.example.demo;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
+import com.example.demo.service.PlayerService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
+@SpringBootTest
 public class CSVUtilTest {
+
+    @Autowired
+    private PlayerService playerService;
 
     @Test
     void converterData(){
@@ -63,6 +63,24 @@ public class CSVUtilTest {
         assert listFilter.block().size() == 322;
     }
 
+    @Test
+    void reactive_filtrarJugadoresMayoresA35_Mongo(){
+        Flux<Player> players = playerService.findAll();
+        var listFilter = players
+                .filter(player -> player.age >= 35)
+                .map(player -> {
+                    player.name = player.name.toUpperCase(Locale.ROOT);
+                    return player;
+                })
+                .buffer(100)
+                .flatMap(playerA -> players
+                        .filter(playerB -> playerA.stream()
+                                .anyMatch(a ->  a.club.equals(playerB.club)))
+                )
+                .distinct()
+                .collectMultimap(Player::getClub);
 
+        assert listFilter.block().size() == 322;
+    }
 
 }
